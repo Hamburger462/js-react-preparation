@@ -1,2 +1,2 @@
 # js-react-preparation
-JavaScripts exercises
+JavaScript exercises
