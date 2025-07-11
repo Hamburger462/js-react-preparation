@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <script type="module" src="main.js"></script>
+        <script type="module" src="task.js"></script>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+
+    <body>
+        <div id="MainList">
+            <header id="ToDo-Header">
+                <h1 id="Logo">
+                    <img
+                        src="img/PlanNormalflow.png"
+                        height="50"
+                    />PlanNormalflow
+                </h1>
+                <nav id="ToDo-Header-navbar">
+                    <div id="Main" class="PageLink ActivePage">Main</div>
+                    <div id="Calendar" class="PageLink">Calendar</div>
+                    <div id="Stats" class="PageLink">Stats</div>
+                    <div id="Settings" class="PageLink">Settings</div>
+                </nav>
+            </header>
+            <main id="ToDo-Main">
+                <section id="MainPage" class="Page">
+                    <div
+                        style="
+                            text-align: center;
+                            padding-top: 10px;
+                            font-size: 20px;
+                            font-weight: 500;
+                            color: rgb(192, 232, 245);
+                        "
+                    >
+                        Tasks
+                    </div>
+                    <div id="ListNavigation">
+                        <!-- <div id="StarredTasksLink" class="CustomListLink">Star</div>
+                        <div id="MyTasksLink" class="CustomListLink">My tasks</div> -->
+                        <div id="CreateListLink" class="CustomListLink">
+                            Create list
+                        </div>
+                    </div>
+                    <div id="Lists">
+                        <!-- <div class="CustomList" id="StarredTasks">
+                            <div class="CustomList-Main">
+                                <div class="List"></div>
+                            </div>
+                        </div>
+                        <div class="CustomList" id="MyTasks">
+                            <div class="CustomList-Main">
+                                <div class="ListButtons">
+                                    <h3
+                                        class="ListName"
+                                        style="text-align: center"
+                                    >
+                                        My tasks
+                                    </h3>
+                                    <div>
+                                        <button class="AddTask">
+                                            Add Task
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="List"></div>
+                            </div>
+                        </div> -->
+                    </div>
+                </section>
+                <!-- <section id="CalendarPage" class="Page"></section>
+                <section id="StatsPage" class="Page"></section>
+                <section id="SettingsPage" class="Page"></section> -->
+            </main>
+            <!-- <footer id="ToDo-Footer"></footer> -->
+        </div>
+
+        <!-- Creating a new list modal window -->
+        <div id="CreateWindow">
+            <div id="MainWindow">
+                <form>
+                    <input
+                        type="text"
+                        placeholder="Enter the list name"
+                        id="ModalListName"
+                    />
+                    <div id="ModalListButton">Add list</div>
+                </form>
+                <form>
+                    <input
+                        type="text"
+                        placeholder="Enter the task name"
+                        id="ModalTaskName"
+                    />
+                    <div id="ModalTaskButton">Add task</div>
+                </form>
+                <img src="img/Cancel_icon.png" id="CloseModal">
+            </div>
+        </div>
+
+        <!-- Background overlay when opening modal window -->
+        <div id="BackgroundOverlay"></div>
+
+        <button id="ClearData">Clear Data</button>
+    </body>
+</html>
