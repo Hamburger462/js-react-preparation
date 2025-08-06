@@ -1,9 +1,27 @@
 import { CreateTask } from "./task.js";
 import { Tasks } from "./task.js";
 
-window.addEventListener("load", () => {
+document.addEventListener("DOMContentLoaded", () => {
     // Grabbable scrollbar
     const Lists = document.getElementById("Lists");
+    const MainWindow = document.getElementById("ToDo-Main");
+    const MainWindowLinks = document.getElementById("ToDo-Header-navbar");
+
+    MainWindowLinks.addEventListener("click", (event) => {
+        if (event.target == MainWindowLinks) return;
+        Array.from(MainWindow.children).forEach((element) => {
+            element.classList.remove("ActivePage");
+        });
+        Array.from(MainWindowLinks.children).forEach((element) => {
+            element.classList.remove("ActivePageLink");
+        });
+        let child = event.target;
+        let children = Array.from(MainWindowLinks.children);
+        let index = children.indexOf(child);
+
+        child.classList.add("ActivePageLink");
+        MainWindow.children[index].classList.add("ActivePage");
+    });
 
     let isDown = false;
     let startX; // Cursor's initial coordinates
@@ -42,6 +60,12 @@ window.addEventListener("load", () => {
         isDown = false;
         Lists.style.cursor = "default";
     });
+
+    // Lists.addEventListener("mouseenter", (event) => {
+    //     if (!isDown) return;
+
+    //     if(!event.target.matches("#Lists")) return;
+    // }, {capture: true})
 
     let snapTimeout;
     Lists.addEventListener("scroll", () => {
@@ -120,50 +144,126 @@ window.addEventListener("load", () => {
     const BackgroundOverlay = document.getElementById("BackgroundOverlay");
 
     const CreateTaskName = document.getElementById("ModalTaskName");
+    const CreateTaskDescription = document.getElementById(
+        "ModalTaskDescription"
+    );
 
     CreateListLink.addEventListener("click", (event) =>
         OpenModal(event.target)
     );
 
-    CreateListButton.addEventListener("click", () =>
-        CreateList(CreateListName.value)
-    );
+    CreateListButton.addEventListener("click", () => {
+        function isValidInput(input) {
+            const regex = /^$|^(?!\d)[^\d]+$/;
+            return regex.test(input);
+        }
+        if (!isValidInput(CreateListName.value)) {
+            alert("Invalid list name");
+            CreateListName.value = "";
+            return;
+        } else {
+            CreateList(CreateListName.value);
+        }
+    });
 
+    const MainModalForms = document.querySelectorAll("#MainWindow > form");
+    const ModalTaskButton = document.getElementById("ModalTaskButton");
     let lastEventListener;
 
+    function NameValidation(name) {
+        if (name.length > 30) {
+            alert("Character limit reached");
+            // CreateTaskName.value = "";
+            // CreateTaskDescription.value = "";
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     function OpenModal(elem) {
-        if (elem.classList.contains("AddTask")) {
-            const btn = elem.closest(".AddTask");
-            if (!btn) return;
+        if (elem.matches(".AddTask")) {
+            // const btn = elem.closest(".AddTask");
+            // if (!btn) return;
             MainModalForms[0].style.display = "none";
             MainModalForms[1].style.display = "block";
-            CreateListName.value = "";
-            CreateListWindow.style.height = "200px";
+            CreateListWindow.style.height = "300px";
             BackgroundOverlay.style.width = "100vw";
             BackgroundOverlay.style.zIndex = "1";
 
-            const ModalTaskButton = document.getElementById("ModalTaskButton");
-
             lastEventListener = () => {
-                CreateTask(elem, CreateTaskName.value);
+                if (
+                    !NameValidation(CreateTaskName.value) ||
+                    !NameValidation(CreateTaskDescription.value)
+                )
+                    return;
+                CreateTask(
+                    elem,
+                    CreateTaskName.value,
+                    CreateTaskDescription.value
+                );
                 CloseModal();
             };
 
             ModalTaskButton.addEventListener("click", lastEventListener, {
-                once: true,
+                // once: true,
             });
-        } else if (elem.id == "CreateListLink") {
+        } else if (elem.matches("#CreateListLink")) {
             MainModalForms[1].style.display = "none";
             MainModalForms[0].style.display = "block";
-            CreateListName.value = "";
-            CreateListWindow.style.height = "200px";
+            CreateListWindow.style.height = "300px";
             BackgroundOverlay.style.width = "100vw";
             BackgroundOverlay.style.zIndex = "1";
+        } else if (elem.matches(".EditTask")) {
+            const ListStorage = JSON.parse(localStorage.getItem("lists"));
+
+            const taskElem = elem.closest(".Task");
+            let taskId = taskElem.id;
+            let listName = taskId.split("_")[0];
+            let taskIndex = taskId.split("_")[1];
+
+            MainModalForms[0].style.display = "none";
+            MainModalForms[1].style.display = "block";
+            CreateTaskName.value = document.querySelector(
+                `#${taskId} > .Task_Complete > div > .TaskName`
+            ).textContent;
+            CreateTaskDescription.value = document.querySelector(
+                `#${taskId} > .Task_Complete > div > .TaskDescription`
+            ).textContent;
+            CreateListWindow.style.height = "300px";
+            BackgroundOverlay.style.width = "100vw";
+            BackgroundOverlay.style.zIndex = "1";
+
+            lastEventListener = () => {
+                if (
+                    !NameValidation(CreateTaskName.value) ||
+                    !NameValidation(CreateTaskDescription.value)
+                )
+                    return;
+                document.querySelector(
+                    `#${taskId} > .Task_Complete > div > .TaskName`
+                ).innerHTML = CreateTaskName.value;
+                document.querySelector(
+                    `#${taskId} > .Task_Complete > div > .TaskDescription`
+                ).innerHTML = CreateTaskDescription.value;
+
+                ListStorage[listName][taskIndex].title = CreateTaskName.value;
+                ListStorage[listName][taskIndex].description =
+                    CreateTaskDescription.value;
+                localStorage.setItem("lists", JSON.stringify(ListStorage));
+                CloseModal();
+            };
+
+            ModalTaskButton.addEventListener("click", lastEventListener, {
+                // once: true,
+            });
         }
     }
 
     function CloseModal() {
         CreateListName.value = "";
+        CreateTaskName.value = "";
+        CreateTaskDescription.value = "";
         CreateListWindow.style.height = "0";
         BackgroundOverlay.style.width = "0";
         BackgroundOverlay.style.zIndex = "0";
@@ -182,16 +282,19 @@ window.addEventListener("load", () => {
 
     // List navigation buttons
 
-    let ListStorage = JSON.parse(localStorage.getItem("lists")) || {};
+    const ListStorage = JSON.parse(localStorage.getItem("lists")) || {};
+    // let CompletedTasks = JSON.parse(localStorage.getItem("completeTasks")) || [];
+    // let FavoritedTasks = JSON.parse(localStorage.getItem("favoriteTasks")) || [];
 
     if (Object.keys(ListStorage).length === 0) {
-        CreateList("Favorited", true, false);
+        MainWindow.children[0].classList.add("ActivePage");
+        CreateList("Favorited", true);
         CreateList("My Tasks", true);
     }
 
     document.getElementById("ClearData").addEventListener("click", () => {
         localStorage.clear();
-        alert("Data deleted");
+        location.reload();
     });
 
     // console.log(ListStorage);
@@ -206,6 +309,8 @@ window.addEventListener("load", () => {
         // Creating a navigation button to that list
         const newListLink = document.createElement("div");
         newListLink.classList.add("CustomListLink");
+
+        let ListStorage = JSON.parse(localStorage.getItem("lists")) || {};
 
         let newListName = "";
         if (name == "") {
@@ -222,7 +327,7 @@ window.addEventListener("load", () => {
         }
 
         let button = isAddingButton
-            ? `<div><button class="AddTask">Add Task</button></div>`
+            ? `<div class="ListButton"><img src="img/AddTask_icon.png" class="AddTask"></div>`
             : "";
 
         newList.innerHTML = `
@@ -230,11 +335,15 @@ window.addEventListener("load", () => {
                 <div class="ListButtons">
                     <h3
                     class="ListName"
-                    style="text-align: center"
                     >
                     ${newListName}
                     </h3>
+                    <div class="FilterButtons">
                     ${button}
+                    <div class="ListButton"><img src="img/FilterList_icon.png"></div>
+                    <div class="ListButton"><img src="img/SortList_icon.png"></div>
+                    <div class="ListButton"><img src="img/Options_icon.png"></div>
+                    </div>
                 </div>
                 <div class="List">
                 
@@ -242,15 +351,10 @@ window.addEventListener("load", () => {
             </div>
         `;
 
-        const LastListLink = ListLinks.lastElementChild;
-        ListLinks.insertBefore(newListLink, LastListLink);
-        // console.log(Lists);
-
-        // ListStorage[newList.id] = [];
-        // localStorage.setItem("lists", JSON.stringify(ListStorage));
+        ListLinks.appendChild(newListLink);
 
         if (isSetting) {
-            ListStorage[newList.id] = [];
+            ListStorage[newList.id] = {};
             localStorage.setItem("lists", JSON.stringify(ListStorage));
 
             CloseModal();
@@ -265,7 +369,7 @@ window.addEventListener("load", () => {
     function StartUp() {
         for (let elem in ListStorage) {
             if (elem == "Favorited") {
-                let parent = CreateList(elem, false, false);
+                let parent = CreateList(elem, false);
                 CreateTask(parent);
                 continue;
             }
@@ -274,14 +378,13 @@ window.addEventListener("load", () => {
         }
 
         ListLinks.children[0].classList.add("CustomListLink-selected");
+        MainWindow.children[0].classList.add("ActivePage");
         // StartUpTasks();
     }
 
     if (Lists.children.length == 0 && Object.keys(ListStorage).length !== 0) {
         StartUp();
     }
-
-    const MainModalForms = document.querySelectorAll("#MainWindow > form");
 
     Lists.addEventListener("click", (event) => OpenModal(event.target));
 

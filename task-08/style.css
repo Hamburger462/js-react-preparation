@@ -1,3 +1,21 @@
+@keyframes HoverAnim{
+    0%{
+        transform: rotate(0);
+    }
+    25%{
+        transform: rotate(1deg);
+    }
+    50%{
+        transform: rotate(0);
+    }
+    75%{
+        transform: rotate(-1deg);
+    }
+    100%{
+        transform: rotate(0);
+    }
+}
+
 body {
     background-color: rgb(192, 232, 245);
     /* gap: 10px; */
@@ -44,9 +62,6 @@ body {
     grid-column: 2 / 6;
     grid-row: 1 / 6;
     background-color: gray;
-    overflow: auto;
-    scroll-snap-type: y mandatory;
-    scroll-behavior: smooth;
 }
 
 #ToDo-Main::-webkit-scrollbar {
@@ -68,17 +83,35 @@ body {
 .PageLink {
     padding: 25px;
     text-align: center;
+    transition: 0.2s;
+}
+
+.PageLink:hover {
+    cursor: pointer;
+    background-color: rgb(102, 102, 102);
+}
+
+.ActivePageLink {
+    background-color: gray;
 }
 
 .Page {
-    min-height: 100%;
+    /* min-height: 100%; */
     scroll-snap-align: start;
     user-select: none;
+    /* width: 0;
+    height: 0; */
+    display: none;
+    overflow: hidden;
+    transition: 0.2s;
 }
 
 .ActivePage {
-    background-color: gray;
+    width: 100%;
+    height: 100%;
+    display: flex;
 }
+
 .CustomList {
     gap: 20px;
     /* padding: 4px; */
@@ -92,33 +125,55 @@ body {
 }
 .Task {
     border: 2px solid black;
-    width: 90%;
+    border-radius: 10px;
+    /* width: 100%; */
     padding: 5px;
     user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-.Task > * {
+
+/* .Task:hover{
+    animation: HoverAnim 2s linear infinite;
+} */
+
+/* .Task > * {
     transition: 0.5s;
     padding: 2px;
+} */
+
+.Task_Edit {
+    display: flex;
+    gap: 12px;
+}
+
+.Task_Edit > img {
+    width: 30px;
 }
 
 .CustomListLink {
     flex-shrink: 0;
     padding: 10px;
     transition: 0.2s;
-    width: 100px;   
+    width: 100px;
     text-align: center;
+    border-radius: 10px;
+    font-size: 20px;
+    transform-style: preserve-3d;
 }
 
-.CustomListLink:hover{
+.CustomListLink:hover {
     box-shadow: inset 0 0 0 2px black;
     cursor: pointer;
+    animation: HoverAnim 2s infinite;
 }
 
-.CustomListLink:active{
-     box-shadow: inset 0 0 0 4px black;
+.CustomListLink:active {
+    box-shadow: inset 0 0 0 4px black;
 }
 
-.CustomListLink-selected{
+.CustomListLink-selected {
     color: rgb(192, 232, 245);
     box-shadow: inset 0 0 0 2px black;
 }
@@ -133,24 +188,32 @@ body {
     display: none;
 }
 
-.List{
+.List {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    padding: 10px;
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 10px;
+    /* border: 2px solid; */
+    background-color: rgb(194, 194, 194);
+    border-radius: 15px;
 }
 
 #ListNavigation {
+    /* margin-top: 10px; */
+    padding: 10px 0;
     display: flex;
     justify-content: space-around;
     gap: 20px;
     position: relative;
     overflow: auto;
+    flex-shrink: 0;
+    /* border-bottom: 2px solid; */
 }
 
-#CurrentLink{
+#CurrentLink {
     height: 5px;
     width: 10px;
     border-radius: 10px;
@@ -171,7 +234,6 @@ body {
 }
 
 #MainPage {
-    display: flex;
     flex-direction: column;
 }
 
@@ -181,7 +243,7 @@ body {
 
 #CreateWindow {
     position: absolute;
-    width: 400px;
+    width: 500px;
     height: 0;
     top: 50%;
     left: 50%;
@@ -195,17 +257,17 @@ body {
     border-radius: 10px;
 }
 
-#MainWindow{
+#MainWindow {
     display: flex;
     justify-content: space-between;
     margin: 10px;
 }
 
-#ListCreateButton{
+#ListCreateButton {
     cursor: pointer;
 }
 
-#BackgroundOverlay{
+#BackgroundOverlay {
     width: 0;
     height: 100%;
     background-color: black;
@@ -217,7 +279,97 @@ body {
     transition: 0.2s;
 }
 
-#CloseModal{
+#CloseModal {
     width: 30px;
     height: 30px;
+}
+
+#CreateListLink {
+    width: 30px;
+}
+
+/* .AddFavorite{
+    transition: 0.2s;
+} */
+
+.Task_Complete {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.CompleteTask {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid;
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    /* margin: 0;
+    padding: 0;
+    font-size: 0; */
+}
+
+/* .AddComplete::after{
+    content: "";
+    display: block;
+    background-color: black;
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+} */
+
+.CompleteMark {
+    display: none;
+    background-color: black;
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+    pointer-events: none;
+}
+
+.TaskName {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+#ModalTaskName {
+    width: 90%;
+}
+
+.FilterButtons {
+    display: flex;
+    gap: 12px;
+}
+
+/* .ListButton{
+    height: 100%;
+} */
+
+.ListButton > img {
+    width: 30px;
+    height: 30px;
+}
+
+.ListButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 100%;
+    height: 40px;
+    width: 40px;
+    transition: 0.3s;
+}
+
+.ListButton:hover {
+    cursor: pointer;
+    background-color: rgb(102, 102, 102);
+}
+
+.ListName {
+    text-align: center;
+    font-size: 24px;
+    margin: 16px;
 }

@@ -3,10 +3,11 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
+        <title>To-Do</title>
         <script type="module" src="main.js"></script>
         <script type="module" src="task.js"></script>
         <link rel="stylesheet" href="style.css" />
+        <link rel="icon" type="image/png" href="img/PlanNormalflow.png" />
     </head>
 
     <body>
@@ -19,7 +20,7 @@
                     />PlanNormalflow
                 </h1>
                 <nav id="ToDo-Header-navbar">
-                    <div id="Main" class="PageLink ActivePage">Main</div>
+                    <div id="Main" class="PageLink ActivePageLink">Main</div>
                     <div id="Calendar" class="PageLink">Calendar</div>
                     <div id="Stats" class="PageLink">Stats</div>
                     <div id="Settings" class="PageLink">Settings</div>
@@ -34,16 +35,21 @@
                             font-size: 20px;
                             font-weight: 500;
                             color: rgb(192, 232, 245);
+                            display: flex;
+                            align-items: center;
+                            margin: auto;
+                            gap: 20px;
                         "
                     >
                         Tasks
+                        <img src="img/AddList_icon.png" id="CreateListLink" />
                     </div>
                     <div id="ListNavigation">
                         <!-- <div id="StarredTasksLink" class="CustomListLink">Star</div>
                         <div id="MyTasksLink" class="CustomListLink">My tasks</div> -->
-                        <div id="CreateListLink" class="CustomListLink">
+                        <!-- <div id="CreateListLink" class="CustomListLink">
                             Create list
-                        </div>
+                        </div> -->
                     </div>
                     <div id="Lists">
                         <!-- <div class="CustomList" id="StarredTasks">
@@ -71,9 +77,20 @@
                         </div> -->
                     </div>
                 </section>
-                <!-- <section id="CalendarPage" class="Page"></section>
-                <section id="StatsPage" class="Page"></section>
-                <section id="SettingsPage" class="Page"></section> -->
+                <section id="CalendarPage" class="Page"></section>
+                <section id="StatsPage" class="Page">
+                    <div>
+                        <div id="CompletedTaskPage">
+                            <div>Completed:</div>
+                            <div id="CompletedTasks"></div>
+                        </div>
+                        <div id="FavoriteTaskPage">
+                            <div>Favorited:</div>
+                            <div id="FavoriteTasks"></div>
+                        </div>
+                    </div>
+                </section>
+                <section id="SettingsPage" class="Page"></section>
             </main>
             <!-- <footer id="ToDo-Footer"></footer> -->
         </div>
@@ -81,23 +98,33 @@
         <!-- Creating a new list modal window -->
         <div id="CreateWindow">
             <div id="MainWindow">
+                <!-- Form to create list -->
                 <form>
                     <input
                         type="text"
                         placeholder="Enter the list name"
                         id="ModalListName"
+                        autocomplete="off"
                     />
                     <div id="ModalListButton">Add list</div>
                 </form>
+                <!-- Form to create task -->
                 <form>
                     <input
                         type="text"
                         placeholder="Enter the task name"
                         id="ModalTaskName"
+                        autocomplete="off"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Enter the task description"
+                        id="ModalTaskDescription"
+                        autocomplete="off"
                     />
                     <div id="ModalTaskButton">Add task</div>
                 </form>
-                <img src="img/Cancel_icon.png" id="CloseModal">
+                <img src="img/Cancel_icon.png" id="CloseModal" />
             </div>
         </div>
 
