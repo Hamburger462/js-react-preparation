@@ -1,4 +1,4 @@
-export function CreateTask(elem, name, description = '') {
+export function CreateTask(elem, name, description) {
     if (elem.matches(".AddTask")) {
         const btn = elem.closest(".AddTask");
         if (!btn) return; // Not an AddTask button
@@ -7,26 +7,34 @@ export function CreateTask(elem, name, description = '') {
         const list = listButtons.nextElementSibling; // .List is right after .ListButtons
         let parent = listButtons.parentElement.parentElement;
 
+        const listProgressBar = btn.closest(".FilterButtons").previousElementSibling;
+        listProgressBar.classList.remove("ProgressBarInitial");
+        listProgressBar.classList.add("ProgressBarActive");
+        listProgressBar.children[1].style.display = "block";
+
         let ListStorage = JSON.parse(localStorage.getItem("lists"));
+
+        let new_desc = description == "" ? "Something to do..." : description;
 
         let newTask;
         if (name == "") {
-            newTask = new Tasks(`New Task`, description);
+            newTask = new Tasks(`New Task`, new_desc);
         } else {
-            newTask = new Tasks(name, description);
+            newTask = new Tasks(name, new_desc);
         }
         newTask.setId(crypto.randomUUID());
 
         newTask.createTask(parent);
         ListStorage[parent.id][newTask.id] = newTask;
 
-        newTask.TaskElem.id = `${parent.id}_${newTask.id}`;
+        newTask.parentId = parent.id;
+        newTask.TaskElem.classList.add(`${parent.id}_${newTask.id}`);
 
         list.appendChild(newTask.TaskElem);
 
         localStorage.setItem("lists", JSON.stringify(ListStorage));
 
-        console.log(ListStorage);
+        // console.log(ListStorage);
     } else {
         let ListStorage = JSON.parse(localStorage.getItem("lists"));
 
@@ -37,7 +45,9 @@ export function CreateTask(elem, name, description = '') {
             let newTask = new Tasks(List[task].title, List[task].description);
             newTask.setId(List[task].id);
             newTask.createTask(elem, List[task]);
-            newTask.TaskElem.id = `${elem.id}_${newTask.id}`;
+            newTask.TaskElem.classList.add(
+                `${List[task].parentId}_${newTask.id}`
+            );
             ListElem.appendChild(newTask.TaskElem);
         }
         // console.log(elem.id);
@@ -124,12 +134,9 @@ export class Tasks {
 
 window.addEventListener("load", () => {
     const Lists = document.getElementById("Lists");
-    // let FavoriteList;
-    // FavoriteList = document.querySelector("#Favorited > .CustomListMain > .List");
-    
-    function DuplicateTask(){
-        
-    }
+    const FavoriteList = document.querySelector(
+        "#Favorited > .CustomListMain > .List"
+    );
 
     const CompletedTasksDisplay = document.getElementById("CompletedTasks");
     const FavoritedTasksDisplay = document.getElementById("FavoriteTasks");
@@ -145,8 +152,8 @@ window.addEventListener("load", () => {
         const checkbox_mark = checkbox.children[0];
         let checkbox_input = checkbox.previousElementSibling;
 
-        let listName = checkbox_input.id.split('_')[0];
-        let taskIndex = checkbox_input.id.split('_')[1];
+        let listName = checkbox_input.id.split("_")[0];
+        let taskIndex = checkbox_input.id.split("_")[1];
         if (!checkbox_input.checked) {
             checkbox_mark.style.display = "block";
             ListStorage[listName][taskIndex].status = "Complete";
@@ -161,10 +168,11 @@ window.addEventListener("load", () => {
         }
 
         CompletedTasksDisplay.innerHTML = `${CompletedTasks.length}`;
+
         localStorage.setItem("completeTasks", JSON.stringify(CompletedTasks));
         localStorage.setItem("lists", JSON.stringify(ListStorage));
 
-        console.log(CompletedTasks);
+        console.log(ListStorage);
     });
 
     // Event listener to favorite a task
@@ -172,50 +180,167 @@ window.addEventListener("load", () => {
         if (!event.target.matches(".FavoriteTask")) return;
 
         let ListStorage = JSON.parse(localStorage.getItem("lists"));
-        let FavoritedTasks =
-            JSON.parse(localStorage.getItem("favoriteTasks")) || [];
 
-        let name = event.target.closest(".Task").id;
+        let name = event.target.closest(".Task").className.split(" ")[1];
         let listName = name.split("_")[0];
         let taskIndex = name.split("_")[1];
+        // console.log(name.className.split(" ")[1]);
 
         if (event.target.src.includes("UnfavoriteTask_icon.png")) {
             event.target.src = "img/FavoriteTask_icon.png";
+
             ListStorage[listName][taskIndex].isFavorite = true;
-            // FavoriteList.appendChild(event.target.closest(".Task"));    
-            FavoritedTasks.push(ListStorage[listName][taskIndex]);
+
+            let cloneElement = event.target.closest(".Task").cloneNode(true);
+            FavoriteList.appendChild(cloneElement);
+
+            ListStorage["Favorited"][taskIndex] =
+                ListStorage[listName][taskIndex];
         } else if (event.target.src.includes("FavoriteTask_icon.png")) {
-            event.target.src = "img/UnfavoriteTask_icon.png";
-            ListStorage[listName][taskIndex].isFavorite = false;
-            let completeTaskIndex = FavoritedTasks.findIndex(
-                (elem) => elem.id == ListStorage[listName][taskIndex].id
+            let duplicates = document.querySelectorAll(
+                `.${name} > .Task_Edit > .FavoriteTask`
             );
-            FavoritedTasks.splice(completeTaskIndex, 1);
+            duplicates.forEach((elem) => {
+                elem.src = "img/UnfavoriteTask_icon.png";
+            });
+
+            document
+                .querySelector(
+                    `#Favorited > .CustomListMain > .List > .${name}`
+                )
+                .remove();
+
+            ListStorage[listName][taskIndex].isFavorite = false;
+            delete ListStorage["Favorited"][taskIndex];
         }
 
-        FavoritedTasksDisplay.innerHTML = `${FavoritedTasks.length}`;
-        localStorage.setItem("favoriteTasks", JSON.stringify(FavoritedTasks));
+        FavoritedTasksDisplay.innerHTML = `${
+            Object.keys(ListStorage["Favorited"]).length
+        }`;
+        // localStorage.setItem("favoriteTasks", JSON.stringify(FavoritedTasks));
         localStorage.setItem("lists", JSON.stringify(ListStorage));
 
-        console.log(FavoritedTasks)
+        console.log(ListStorage);
     });
 
-    // // Event listener to delete a task
+    // Event listener to delete a task
     Lists.addEventListener("click", (event) => {
         if (!event.target.matches(".DeleteTask")) return;
 
         let ListStorage = JSON.parse(localStorage.getItem("lists"));
-        let FavoritedTasks =
-            JSON.parse(localStorage.getItem("favoriteTasks")) || [];
 
-        let name = event.target.closest(".Task").id;
+        let name = event.target.closest(".Task").className.split(" ")[1];
         let listName = name.split("_")[0];
         let taskIndex = name.split("_")[1];
 
         event.target.closest(".Task").remove();
         delete ListStorage[listName][taskIndex];
 
-        localStorage.setItem("favoriteTasks", JSON.stringify(FavoritedTasks));
         localStorage.setItem("lists", JSON.stringify(ListStorage));
     });
+
+    function FilterTasks(list, command) {
+        switch (command) {
+            case "Completed tasks":
+                for (const task of list.children) {
+                    task.style.display = "flex";
+                    const isTaskComplete = document.querySelector(
+                        `.${
+                            task.className.split(" ")[1]
+                        } > .Task_Complete > form > input`
+                    ).checked;
+                    if (!isTaskComplete) {
+                        task.style.display = "none";
+                    }
+                }
+                break;
+            case "Incomplete tasks":
+                for (const task of list.children) {
+                    task.style.display = "flex";
+                    const isTaskComplete = document.querySelector(
+                        `.${
+                            task.className.split(" ")[1]
+                        } > .Task_Complete > form > input`
+                    ).checked;
+                    if (isTaskComplete) {
+                        task.style.display = "none";
+                    }
+                }
+                break;
+            case "All tasks":
+                for (const task of list.children) {
+                    task.style.display = "flex";
+                }
+                break;
+        }
+    }
+    // Event listener to filter the tasks
+    Lists.addEventListener("change", (event) => {
+        if (!event.target.matches(".FilterSelect")) return;
+
+        const List = event.target.closest(".ListButtons").nextElementSibling;
+        FilterTasks(List, event.target.value);
+    });
+
+    function SortTasks(list, command) {
+        let tasks = Array.from(list.children);
+        switch (command) {
+            case "Sort by name(A-Z)":
+                tasks.sort((a, b) => {
+                    const textA = a.querySelector(".TaskName").textContent;
+                    const textB = b.querySelector(".TaskName").textContent;
+                    return textA.localeCompare(textB, "en", {
+                        sensitivity: "base",
+                    });
+                });
+                tasks.forEach((task) => list.appendChild(task));
+                break;
+            case "Sort by name(Z-A)":
+                tasks.sort((a, b) => {
+                    const textA = a.querySelector(".TaskName").textContent;
+                    const textB = b.querySelector(".TaskName").textContent;
+                    return textB.localeCompare(textA, "en", {
+                        sensitivity: "base",
+                    });
+                });
+                tasks.forEach((task) => list.appendChild(task));
+                break;
+            // case "Sort by date(newest-oldest)":
+            //     tasks.sort((a, b) => {
+            //         const textA = a.querySelector(".TaskName").textContent;
+            //         const textB = b.querySelector(".TaskName").textContent;
+            //         return textA.localeCompare(textB, "kn", {
+            //             sensitivity: "base",
+            //         });
+            //     });
+            //     tasks.forEach((task) => list.appendChild(task));
+            //     break;
+            // case "Sort by date(oldest-newest)":
+            //         tasks.sort((a, b) => {
+            //         const textA = a.querySelector(".TaskName").textContent;
+            //         const textB = b.querySelector(".TaskName").textContent;
+            //         return textB.localeCompare(textA, "kn", {
+            //             sensitivity: "base",
+            //         });
+            //     });
+            //     tasks.forEach((task) => list.appendChild(task));
+            //     break;
+        }
+    }
+
+    // Event listener to sort the tasks
+    Lists.addEventListener("change", (event) => {
+        if (!event.target.matches(".SortSelect")) return;
+
+        const List = event.target.closest(".ListButtons").nextElementSibling;
+        SortTasks(List, event.target.value);
+    });
+
+    let ListStorage = JSON.parse(localStorage.getItem("lists"));
+    let CompletedTasks =
+        JSON.parse(localStorage.getItem("completeTasks")) || [];
+    FavoritedTasksDisplay.innerHTML = `${
+        Object.keys(ListStorage["Favorited"]).length
+    }`;
+    CompletedTasksDisplay.innerHTML = `${CompletedTasks.length}`;
 });
