@@ -156,27 +156,32 @@ body {
     flex-shrink: 0;
     padding: 10px;
     transition: 0.2s;
-    width: 100px;
+    width: 120px;
     text-align: center;
     border-radius: 10px;
     font-size: 20px;
     transform-style: preserve-3d;
+    border: 2px solid transparent;
+    box-sizing: border-box;
 }
 
 .CustomListLink:hover {
-    box-shadow: inset 0 0 0 2px black;
+    box-shadow: 1px 2px black;
+    border-color: black;
     /* color: rgb(192, 232, 245); */
     cursor: pointer;
     /* animation: HoverAnim 2s infinite; */
 }
 
 .CustomListLink:active {
-    box-shadow: inset 0 0 0 4px black;
+    box-shadow: 2px 4px black;
+    border-color: black;
+    cursor: pointer;
 }
 
 .CustomListLink-selected {
     color: rgb(192, 232, 245);
-    box-shadow: inset 0 0 0 2px black;
+    border-color: black;
 }
 
 #Lists {
@@ -204,7 +209,7 @@ body {
 
 #ListNavigation {
     /* margin-top: 10px; */
-    padding: 10px 0;
+    padding: 20px 0;
     display: flex;
     justify-content: space-around;
     gap: 20px;
@@ -286,7 +291,31 @@ body {
 }
 
 #CreateListLink {
-    width: 30px;
+    text-align: center;
+    padding: 5px;
+    font-size: 30px;
+    font-weight: 500;
+    color: rgb(192, 232, 245);
+    display: flex;
+    align-items: center;
+    margin: auto;
+    margin-top: 5px;
+    gap: 20px;
+    border-radius: 20px;
+    transition: 0.2s;
+    border: 2px solid black;
+    box-shadow: 1px 2px black;
+}
+
+#CreateListLink:hover {
+    cursor: pointer;
+    background-color: rgb(102, 102, 102);
+}
+
+#CreateListLink > img {
+    box-shadow: none;
+    border: none;
+    width: 50px;
 }
 
 /* .AddFavorite{
@@ -397,16 +426,16 @@ body {
     font-size: 14px;
 }
 
-.ProgressBarInitial{
+.ProgressBarInitial {
     width: 0;
     height: 20px;
     border-radius: 20px;
-    border: none;
     transition: 0.5s;
     position: relative;
+    overflow: hidden;
 }
 
-.ProgressBarActive{
+.ProgressBarActive {
     width: 50%;
     height: 20px;
     border-radius: 20px;
@@ -416,15 +445,32 @@ body {
     position: relative;
 }
 
-.Bar{
+.Bar {
     height: 100%;
     width: 0;
     background-color: rgb(192, 232, 245);
+    transition: 0.5s;
 }
 
-.Count{
+.Count {
     position: absolute;
     top: 10%;
     left: 50%;
-    display: none;
+    display: block;
+}
+
+#PageName {
+    text-align: center;
+    padding-top: 10px;
+    font-size: 30px;
+    font-weight: 500;
+    color: rgb(192, 232, 245);
+    display: flex;
+    align-items: center;
+    margin: auto;
+    gap: 20px;
+}
+
+input[type="text"]{
+    padding: 5px;
 }

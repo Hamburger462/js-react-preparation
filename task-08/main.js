@@ -139,14 +139,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Modal Window
     const CreateListLink = document.getElementById("CreateListLink");
     const CreateListWindow = document.getElementById("CreateWindow");
+
     const CreateListName = document.getElementById("ModalListName");
-    const CreateListButton = document.getElementById("ModalListButton");
-    const BackgroundOverlay = document.getElementById("BackgroundOverlay");
+    const CreateListButton = document.getElementById("ModalAddListButton");
+    const DeleteListButton = document.getElementById("ModalDeleteListButton");
 
     const CreateTaskName = document.getElementById("ModalTaskName");
     const CreateTaskDescription = document.getElementById(
         "ModalTaskDescription"
     );
+
+    const BackgroundOverlay = document.getElementById("BackgroundOverlay");
 
     CreateListLink.addEventListener("click", (event) =>
         OpenModal(event.target)
@@ -168,7 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const MainModalForms = document.querySelectorAll("#MainWindow > form");
     const ModalTaskButton = document.getElementById("ModalTaskButton");
-    let lastEventListener;
+
+    let lastAddEventListener;
+    let lastDeleteEventListener;
 
     function NameValidation(name) {
         if (name.length > 30) {
@@ -191,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
             BackgroundOverlay.style.width = "100vw";
             BackgroundOverlay.style.zIndex = "1";
 
-            lastEventListener = () => {
+            lastAddEventListener = () => {
                 if (!NameValidation(CreateListName.value)) return;
                 CreateTask(
                     elem,
@@ -201,19 +206,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 CloseModal();
             };
 
-            ModalTaskButton.addEventListener("click", lastEventListener);
+            ModalTaskButton.addEventListener("click", lastAddEventListener);
         } else if (elem.matches("#CreateListLink")) {
             MainModalForms[1].style.display = "none";
             MainModalForms[0].style.display = "block";
+            DeleteListButton.style.display = "none";
 
             CreateListWindow.style.height = "300px";
             BackgroundOverlay.style.width = "100vw";
             BackgroundOverlay.style.zIndex = "1";
 
-            lastEventListener = () => {
+            lastAddEventListener = () => {
                 function isValidInput(input) {
                     const regex = /^$|^(?!\d)[^\d]+$/;
-                    return regex.test(input);
+                    return regex.test(input) && !(CreateListName.value.replace(/ /g, "-") in ListStorage);
                 }
                 if (!isValidInput(CreateListName.value)) {
                     alert("Invalid list name");
@@ -223,7 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 CreateList(CreateListName.value);
                 CloseModal();
             };
-            CreateListButton.addEventListener("click", lastEventListener);
+
+            CreateListButton.addEventListener("click", lastAddEventListener);
         } else if (elem.matches(".EditTask")) {
             const ListStorage = JSON.parse(localStorage.getItem("lists"));
 
@@ -245,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
             BackgroundOverlay.style.width = "100vw";
             BackgroundOverlay.style.zIndex = "1";
 
-            lastEventListener = () => {
+            lastAddEventListener = () => {
                 if (!NameValidation(CreateListName.value)) return;
 
                 let duplicateNames = document.querySelectorAll(
@@ -277,35 +284,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 CloseModal();
             };
 
-            ModalTaskButton.addEventListener("click", lastEventListener);
+            ModalTaskButton.addEventListener("click", lastAddEventListener);
         } else if (elem.matches(".ListOptions")) {
             MainModalForms[0].style.display = "block";
             MainModalForms[1].style.display = "none";
+            DeleteListButton.style.display = "block";
 
             CreateListWindow.style.height = "300px";
             BackgroundOverlay.style.width = "100vw";
             BackgroundOverlay.style.zIndex = "1";
 
             const List = elem.closest(".CustomList");
+            let ListLink = document.getElementById(`${List.id}Link`);
             const ListTasks = document.querySelectorAll(
                 `#${List.id} > .CustomListMain > .List > .Task`
             );
             const ListName =
-                elem.closest(".FilterButtons").previousElementSibling;
+                elem.closest(".FilterButtons").previousElementSibling
+                    .previousElementSibling;
             let ListStorage = JSON.parse(localStorage.getItem("lists"));
 
             CreateListName.value = ListName.textContent
                 .trim()
                 .replace(/\s+/g, " ");
 
-            lastEventListener = () => {
+            lastAddEventListener = () => {
                 function isValidInput(input) {
                     const regex = /^$|^(?!\d)[^\d]+$/;
-                    return regex.test(input);
+                    return regex.test(input) && !(CreateListName.value.replace(/ /g, "-") in ListStorage);
                 }
                 if (!isValidInput(CreateListName.value)) {
                     alert("Invalid list name");
-                    CreateListName.value = "";
+                    CreateListName.value = ListName.textContent
+                        .trim()
+                        .replace(/\s+/g, " ");
                     return;
                 } else {
                     ListName.textContent = CreateListName.value;
@@ -326,18 +338,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                 task.classList.remove(cls);
                                 task.classList.add(`${ListId}_${TaskId}`);
-
-                                let TaskInput = document.getElementById(
-                                    `${List.id}_${TaskId}_checkbox`
-                                );
-                                TaskInput.id = `${ListId}_${TaskId}_checkbox`;
-                                TaskInput.nextElementSibling.htmlFor = `${ListId}_${TaskId}_checkbox`;
                             }
                         });
                     }
 
-                    document.getElementById(`${List.id}Link`).textContent =
-                        CreateListName.value;
+                    ListLink.id = `${ListId}Link`;
+                    ListLink.textContent = CreateListName.value;
 
                     delete ListStorage[List.id];
 
@@ -347,7 +353,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem("lists", JSON.stringify(ListStorage));
                 CloseModal();
             };
-            CreateListButton.addEventListener("click", lastEventListener);
+
+            lastDeleteEventListener = () => DeleteList(List, ListLink);
+
+            DeleteListButton.addEventListener("click", lastDeleteEventListener);
+            CreateListButton.addEventListener("click", lastAddEventListener);
         }
     }
 
@@ -361,10 +371,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const ModalTaskButton = document.getElementById("ModalTaskButton");
 
-        ModalTaskButton.removeEventListener("click", lastEventListener, {
+        ModalTaskButton.removeEventListener("click", lastAddEventListener, {
             once: true,
         });
-        CreateListButton.removeEventListener("click", lastEventListener, {
+        CreateListButton.removeEventListener("click", lastAddEventListener, {
+            once: true,
+        });
+        DeleteListButton.removeEventListener("click", lastDeleteEventListener, {
             once: true,
         });
     }
@@ -382,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (Object.keys(ListStorage).length === 0) {
         MainWindow.children[0].classList.add("ActivePage");
-        CreateList("Favorited", true, false);
+        CreateList("Favorited", true, false, false);
         CreateList("My-Tasks", true);
     }
 
@@ -394,7 +407,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // console.log(ListStorage);
 
     // List creation
-    function CreateList(name = "", isSetting = true, isAddingButton = true) {
+    function CreateList(
+        name = "",
+        isSetting = true,
+        isAddingCreateButton = true,
+        isAddingOptions = true
+    ) {
         // Creating a visible list
         const newList = document.createElement("div");
         newList.classList.add("CustomList");
@@ -420,9 +438,13 @@ document.addEventListener("DOMContentLoaded", () => {
             newListName = `${name.replace(/-/g, " ")}`;
         }
 
-        let button = isAddingButton
+        // let progressClass = isProgressActive ? "ProgressBarActive" : ""
+
+        let addButton = isAddingCreateButton
             ? `<div class="ListButton AddTask" title="Add the task"><img src="img/AddTask_icon.png"></div>`
             : "";
+
+        let optionsButton = isAddingOptions ? `<div class="ListButton ListOptions" title="List options"><img src="img/Options_icon.png"></div>` : "";
 
         newList.innerHTML = `
             <div class="CustomListMain">
@@ -437,7 +459,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="Count">0%</div>
                     </div>
                     <div class="FilterButtons">
-                        ${button}
+                        ${addButton}
                         <div class="ListButton" title="Filter the list">
                             <img src="img/FilterList_icon.png">
                             <select name="Filter" class="SelectButton FilterSelect">
@@ -455,7 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <option>Sort by name(Z-A)</option>
                             </select>
                         </div>
-                        <div class="ListButton ListOptions" title="List options"><img src="img/Options_icon.png"></div>
+                        ${optionsButton}
                     </div>
                 </div>
                 <div class="List">
@@ -478,15 +500,36 @@ document.addEventListener("DOMContentLoaded", () => {
         return newList;
     }
 
+    function DeleteList(List, ListLink) {
+        const ListStorage = JSON.parse(localStorage.getItem("lists"));
+
+        List.remove();
+        ListLink.remove();
+
+        delete ListStorage[List.id];
+        localStorage.setItem("lists", JSON.stringify(ListStorage));
+
+        CloseModal();
+    }
+
     // Startup
     function StartUp() {
         for (let elem in ListStorage) {
             if (elem == "Favorited") {
-                let parent = CreateList(elem, false, false);
+                let parent = CreateList(elem, false, false, false);
                 CreateTask(parent);
                 continue;
             }
             let parent = CreateList(elem, false);
+
+            if (Object.keys(ListStorage[parent.id]).length != 0) {
+                const listProgressBar = parent.querySelector(
+                    ".CustomListMain > .ListButtons > .ProgressBarInitial"
+                );
+                listProgressBar.classList.remove("ProgressBarInitial");
+                listProgressBar.classList.add("ProgressBarActive");
+            }
+
             CreateTask(parent);
         }
 
